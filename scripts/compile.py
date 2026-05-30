@@ -18,7 +18,7 @@ import asyncio
 import sys
 from pathlib import Path
 
-from config import AGENTS_FILE, CONCEPTS_DIR, CONNECTIONS_DIR, DAILY_DIR, KNOWLEDGE_DIR, now_iso
+from config import AGENTS_FILE, CONCEPTS_DIR, CONNECTIONS_DIR, DAILY_DIR, ENTITIES_DIR, KNOWLEDGE_DIR, NOTES_DIR, SOURCES_DIR, now_iso
 from utils import (
     file_hash,
     list_raw_files,
@@ -133,9 +133,9 @@ Read the daily log above and compile it into wiki articles following the schema 
 
 ### File paths:
 - Write concept articles to: {CONCEPTS_DIR}
-- Write entity articles to: {KNOWLEDGE_DIR / 'entities'}
-- Write source articles to: {KNOWLEDGE_DIR / 'sources'}
-- Write note articles to: {KNOWLEDGE_DIR / 'notes'}
+- Write entity articles to: {ENTITIES_DIR}
+- Write source articles to: {SOURCES_DIR}
+- Write note articles to: {NOTES_DIR}
 - Write connection articles to: {CONNECTIONS_DIR}
 - Append log at: {KNOWLEDGE_DIR / 'log.md'}
 
