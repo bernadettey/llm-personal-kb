@@ -2,7 +2,7 @@
 
 **Your AI conversations compile themselves into a searchable knowledge base.**
 
-Adapted from [Karpathy's LLM Knowledge Base](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) architecture, but instead of clipping web articles, the raw data is your own conversations with Claude Code. When a session ends (or auto-compacts mid-session), Claude Code hooks capture the conversation transcript and spawn a background process that uses the [Claude Agent SDK](https://github.com/anthropics/claude-agent-sdk) to extract the important stuff - decisions, lessons learned, patterns, gotchas - and appends it to a daily log. You then compile those daily logs into structured, cross-referenced knowledge articles organized by concept. Retrieval uses a simple index file instead of RAG - no vector database, no embeddings, just markdown.
+Adapted from [Karpathy's LLM Knowledge Base](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) architecture. Knowledge accumulates from two sources: your Claude Code conversations (automatic) and external materials you drop into `raw/` (manual). Both flows extract structured articles into a multi-layer knowledge base — concepts, entities, connections, sources, notes — with a deterministic index rebuilt by code, not LLM. Retrieval uses a simple index file instead of RAG - no vector database, no embeddings, just markdown.
 
 Anthropic has clarified that personal use of the Claude Agent SDK is covered under your existing Claude subscription (Max, Team, or Enterprise) - no separate API credits needed. Unlike OpenClaw, which requires API billing for its memory flush, this runs on your subscription.
 
@@ -37,8 +37,9 @@ raw/*.md (papers, articles, notes) -> wiki_builder.py -> knowledge/sources/
 
 - **Hooks** capture conversations automatically (session end + pre-compaction safety net)
 - **flush.py** calls the Claude Agent SDK to decide what's worth saving
-- **compile.py** turns daily logs into organized knowledge articles
-- **wiki_builder.py** ingests external sources (papers, docs, notes) and extracts knowledge
+- **compile.py** turns daily logs into concepts, entities, connections, notes
+- **wiki_builder.py** ingests `raw/` files (papers, docs, notes) into the same knowledge layers
+- **index_builder.py** deterministically rebuilds `knowledge/index.md` by scanning articles — no LLM
 - **query.py** answers questions using index-guided retrieval (no RAG needed)
 - **lint.py** runs 7 health checks (broken links, orphans, contradictions, staleness)
 - **SessionStart hook** injects knowledge index into every session for context
@@ -47,18 +48,22 @@ raw/*.md (papers, articles, notes) -> wiki_builder.py -> knowledge/sources/
 
 ```bash
 # Automatic flow (from conversations)
-uv run python scripts/compile.py                    # compile new daily logs
-uv run python scripts/compile.py --all              # recompile everything
+uv run python scripts/compile.py                     # compile new daily logs
+uv run python scripts/compile.py --all               # recompile everything
 
 # Manual flow (from external sources)
-uv run python scripts/wiki_builder.py               # ingest raw/ files
-uv run python scripts/wiki_builder.py --dry-run     # preview what would happen
+uv run python scripts/wiki_builder.py                # ingest raw/ files
+uv run python scripts/wiki_builder.py --dry-run      # preview what would happen
+
+# Index
+uv run python scripts/index_builder.py               # rebuild index.md from articles
+uv run python scripts/index_builder.py --dry-run     # preview index without writing
 
 # Query & maintain
-uv run python scripts/query.py "question"            # ask the knowledge base
+uv run python scripts/query.py "question"             # ask the knowledge base
 uv run python scripts/query.py "question" --file-back # ask + save answer
-uv run python scripts/lint.py                        # run health checks
-uv run python scripts/lint.py --structural-only      # skip LLM checks
+uv run python scripts/lint.py                         # run health checks
+uv run python scripts/lint.py --structural-only       # skip LLM checks
 ```
 
 ## Why No RAG?
