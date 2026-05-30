@@ -223,30 +223,141 @@ filed: 2026-04-05
 - How does this change if Y?
 ```
 
+### Entity Articles (`knowledge/entities/`)
+
+People, organizations, tools, libraries, and other named entities mentioned in conversations. Automatically extracted during compilation.
+
+```markdown
+---
+title: "Entity: [Name]"
+entity_type: "person|organization|tool|library|concept"
+aliases: [alternate names]
+mentions:
+  - "daily/2026-04-01.md"
+  - "daily/2026-04-02.md"
+context: "Brief 1-2 sentence description of what this entity is"
+created: 2026-04-01
+updated: 2026-04-02
+---
+
+# [Entity Name]
+
+[One paragraph overview]
+
+## References in Knowledge Base
+
+- [[concepts/related-concept]] - Discusses this entity
+- [[concepts/another-concept]] - Uses this tool/mentions this person
+
+## Mentions by Date
+
+- **2026-04-01** - Initial mention in [[daily/2026-04-01.md]]
+- **2026-04-02** - Updated context in [[daily/2026-04-02.md]]
+```
+
+### Source Articles (`knowledge/sources/`)
+
+Summaries of important information sources referenced in conversations - papers, documentation, websites, books, etc.
+
+```markdown
+---
+title: "Source: [Title]"
+source_type: "paper|documentation|article|book|blog"
+url: "[if applicable]"
+mentioned_in:
+  - "daily/2026-04-02.md"
+relevance: "[2-3 sentences on why this source matters]"
+created: 2026-04-02
+updated: 2026-04-02
+---
+
+# [Source Title]
+
+## Summary
+
+[2-3 paragraph summary of the source]
+
+## Key Takeaways
+
+- Point 1
+- Point 2
+- Point 3
+
+## Related Concepts
+
+- [[concepts/concept-that-uses-this]] - How this source informs the concept
+- [[concepts/another-related]] - Additional relevance
+
+## Sources
+
+- [[daily/2026-04-02.md]] - Source was referenced in this session
+```
+
+### Notes Articles (`knowledge/notes/`)
+
+Loose, unstructured notes and quick references that don't fit elsewhere. Can be converted to concepts later as they mature.
+
+```markdown
+---
+title: "Note: [Topic]"
+tags: [quick, reference, gotcha]
+created: 2026-04-02
+updated: 2026-04-02
+related:
+  - "concepts/related-concept"
+---
+
+# [Quick Note Title]
+
+[Freeform content - could be a gotcha, workaround, quick reference, incomplete thought, etc.]
+
+## Links
+
+- [[concepts/related]] - Connection to broader concept
+- [[daily/2026-04-02.md]] - Context from this session
+```
+
 ---
 
 ## Core Operations
 
 ### 1. Compile (daily/ -> knowledge/)
 
-When processing a daily log:
+When processing a daily log, the compiler automatically extracts and organizes 6 types of knowledge:
 
-1. Read the daily log file
-2. Read `knowledge/index.md` to understand current knowledge state
-3. Read existing articles that may need updating
-4. For each piece of knowledge found in the log:
-   - If an existing concept article covers this topic: UPDATE it with new information, add the daily log as a source
-   - If it's a new topic: CREATE a new `concepts/` article
-5. If the log reveals a non-obvious connection between 2+ existing concepts: CREATE a `connections/` article
-6. UPDATE `knowledge/index.md` with new/modified entries
-7. APPEND to `knowledge/log.md`
+**The Multi-Layer Extraction Pipeline:**
+
+1. Read the daily log file and existing knowledge base
+2. **Extract Concepts** (3-7 per log)
+   - Abstract ideas, patterns, decisions, lessons learned
+   - Create or update `concepts/` articles
+   
+3. **Extract Entities** (0-5 per log)
+   - Named people, organizations, tools, libraries mentioned
+   - Create or update `entities/` articles with cross-references
+   
+4. **Extract Sources** (0-3 per log)
+   - Important papers, documentation, references discussed
+   - Create `sources/` articles with summaries
+   
+5. **Extract Notes** (0-2 per log)
+   - Quick tips, gotchas, workarounds, incomplete thoughts
+   - Create informal `notes/` articles
+   
+6. **Identify Connections** (0-2 per log)
+   - Non-obvious relationships between 2+ concepts
+   - Create `connections/` articles
+   
+7. **Update Index & Log**
+   - Add all new/modified articles to `knowledge/index.md`
+   - Append compile entry to `knowledge/log.md`
 
 **Important guidelines:**
-- A single daily log may touch 3-10 knowledge articles
+- A single daily log may produce 5-15 total articles (concepts, entities, sources, notes, connections)
 - Prefer updating existing articles over creating near-duplicates
 - Use Obsidian-style `[[wikilinks]]` with full relative paths from knowledge/
 - Write in encyclopedia style - factual, concise, self-contained
-- Every article must have YAML frontmatter
+- Every article must have YAML frontmatter with `created`, `updated`, `sources`
 - Every article must link back to its source daily logs
 
 ### 2. Query (Ask the Knowledge Base)
@@ -302,7 +413,11 @@ llm-personal-kb/
 |   |-- log.md                       #   Append-only build log
 |   |-- concepts/                    #   Atomic knowledge articles
 |   |-- connections/                 #   Cross-cutting insights linking 2+ concepts
+|   |-- entities/                    #   People, organizations, tools, libraries
+|   |-- sources/                     #   Papers, documentation, references
+|   |-- notes/                       #   Quick tips, gotchas, snippets
 |   |-- qa/                          #   Filed query answers (compounding knowledge)
+|   |-- reports/                     #   Lint health check reports
 |-- scripts/                         # CLI tools
 |   |-- compile.py                   #   Compile daily logs -> knowledge articles
 |   |-- query.py                     #   Ask questions (index-guided, no RAG)

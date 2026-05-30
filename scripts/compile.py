@@ -97,22 +97,47 @@ Read the daily log above and compile it into wiki articles following the schema 
    - Include `sources:` in frontmatter pointing to the daily log file
    - Use `[[concepts/slug]]` wikilinks to link to related concepts
    - Write in encyclopedia style - neutral, comprehensive
-3. **Create connection articles** in `knowledge/connections/` if this log reveals non-obvious
+
+3. **Extract entities** into `knowledge/entities/` - people, organizations, tools, libraries mentioned
+   - Examples: "Cursor IDE", "Anthropic", "Claude", specific libraries or frameworks
+   - Create ONE entity file per distinct entity (reuse if already exists)
+   - Include `entity_type` in frontmatter (person|organization|tool|library|concept)
+   - Link to related concepts
+
+4. **Create source articles** in `knowledge/sources/` - important references, papers, documentation
+   - Only if the daily log mentions a specific paper, documentation, website, or book
+   - Include `source_type` and `url` in frontmatter
+   - Summarize what was learned from this source
+
+5. **Create notes** in `knowledge/notes/` - gotchas, quick tips, incomplete thoughts
+   - Only create if there's valuable quick reference content that doesn't fit elsewhere
+   - Keep them short and informal
+
+6. **Create connection articles** in `knowledge/connections/` if this log reveals non-obvious
    relationships between 2+ existing concepts
-4. **Update existing articles** if this log adds new information to concepts already in the wiki
+
+7. **Update existing articles** if this log adds new information to concepts/entities/sources already in the wiki
    - Read the existing article, add the new information, add the source to frontmatter
-5. **Update knowledge/index.md** - Add new entries to the table
+
+8. **Update knowledge/index.md** - Add new entries to the table
    - Each entry: `| [[path/slug]] | One-line summary | source-file | {timestamp[:10]} |`
-6. **Append to knowledge/log.md** - Add a timestamped entry:
+
+9. **Append to knowledge/log.md** - Add a timestamped entry:
    ```
    ## [{timestamp}] compile | {log_path.name}
    - Source: daily/{log_path.name}
-   - Articles created: [[concepts/x]], [[concepts/y]]
-   - Articles updated: [[concepts/z]] (if any)
+   - Concepts: [[concepts/x]], [[concepts/y]]
+   - Entities: [[entities/z]], [[entities/w]] (if any)
+   - Sources: [[sources/a]] (if any)
+   - Notes: [[notes/b]] (if any)
+   - Connections: [[connections/c]] (if any)
    ```
 
 ### File paths:
 - Write concept articles to: {CONCEPTS_DIR}
+- Write entity articles to: {KNOWLEDGE_DIR / 'entities'}
+- Write source articles to: {KNOWLEDGE_DIR / 'sources'}
+- Write note articles to: {KNOWLEDGE_DIR / 'notes'}
 - Write connection articles to: {CONNECTIONS_DIR}
 - Update index at: {KNOWLEDGE_DIR / 'index.md'}
 - Append log at: {KNOWLEDGE_DIR / 'log.md'}
