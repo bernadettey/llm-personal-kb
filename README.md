@@ -21,26 +21,44 @@ From there, your conversations start accumulating. After 6 PM local time, the ne
 
 ## How It Works
 
+**Two parallel data flows:**
+
+**Flow 1: Automatic (from conversations)**
 ```
 Conversation -> SessionEnd/PreCompact hooks -> flush.py extracts knowledge
-    -> daily/YYYY-MM-DD.md -> compile.py -> knowledge/concepts/, connections/, qa/
-        -> SessionStart hook injects index into next session -> cycle repeats
+    -> daily/YYYY-MM-DD.md -> compile.py -> knowledge/concepts/, entities/, connections/
+```
+
+**Flow 2: Manual (from external sources)**
+```
+raw/*.md (papers, articles, notes) -> wiki_builder.py -> knowledge/sources/
+    -> LLM extracts -> knowledge/concepts/, entities/, connections/
 ```
 
 - **Hooks** capture conversations automatically (session end + pre-compaction safety net)
-- **flush.py** calls the Claude Agent SDK to decide what's worth saving, and after 6 PM triggers end-of-day compilation automatically
-- **compile.py** turns daily logs into organized concept articles with cross-references (triggered automatically or run manually)
-- **query.py** answers questions using index-guided retrieval (no RAG needed at personal scale)
+- **flush.py** calls the Claude Agent SDK to decide what's worth saving
+- **compile.py** turns daily logs into organized knowledge articles
+- **wiki_builder.py** ingests external sources (papers, docs, notes) and extracts knowledge
+- **query.py** answers questions using index-guided retrieval (no RAG needed)
 - **lint.py** runs 7 health checks (broken links, orphans, contradictions, staleness)
+- **SessionStart hook** injects knowledge index into every session for context
 
 ## Key Commands
 
 ```bash
+# Automatic flow (from conversations)
 uv run python scripts/compile.py                    # compile new daily logs
+uv run python scripts/compile.py --all              # recompile everything
+
+# Manual flow (from external sources)
+uv run python scripts/wiki_builder.py               # ingest raw/ files
+uv run python scripts/wiki_builder.py --dry-run     # preview what would happen
+
+# Query & maintain
 uv run python scripts/query.py "question"            # ask the knowledge base
-uv run python scripts/query.py "question" --file-back # ask + save answer back
+uv run python scripts/query.py "question" --file-back # ask + save answer
 uv run python scripts/lint.py                        # run health checks
-uv run python scripts/lint.py --structural-only      # free structural checks only
+uv run python scripts/lint.py --structural-only      # skip LLM checks
 ```
 
 ## Why No RAG?

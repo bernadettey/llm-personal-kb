@@ -321,6 +321,31 @@ related:
 
 ## Core Operations
 
+### 0. Wiki Builder (raw/ -> knowledge/sources/ -> concepts/entities/connections)
+
+Optional: ingest external sources manually.
+
+```bash
+uv run python scripts/wiki_builder.py              # process all raw files
+uv run python scripts/wiki_builder.py --file raw/papers/xxx.md  # process one file
+uv run python scripts/wiki_builder.py --dry-run    # preview what would happen
+```
+
+**Pipeline:**
+1. Read `.txt` and `.md` files from `raw/` (completely immutable - never touched)
+2. Generate standardized `knowledge/sources/*.md` articles (one source = one raw file)
+3. LLM reads each source and extracts:
+   - **Concepts** → `knowledge/concepts/`
+   - **Entities** → `knowledge/entities/`
+   - **Connections** → `knowledge/connections/`
+4. Update `knowledge/index.md` and `knowledge/log.md`
+
+**Why this approach:**
+- `raw/` stays pristine (your original notes, papers, docs)
+- `sources/` acts as a normalized layer (structured but source-faithful)
+- LLM then synthesizes higher-level knowledge from sources
+- Keeps raw data and compiled knowledge clearly separated
+
 ### 1. Compile (daily/ -> knowledge/)
 
 When processing a daily log, the compiler automatically extracts and organizes 6 types of knowledge:
@@ -407,6 +432,10 @@ llm-personal-kb/
 |-- AGENTS.md                        # This file - schema + full technical reference
 |-- README.md                        # Concise overview + quick start
 |-- pyproject.toml                   # Dependencies (at root so hooks can find it)
+|-- raw/                             # "Raw sources" - user-provided files (immutable)
+|   |-- papers/                      #   Paper notes, summaries
+|   |-- articles/                    #   Article clippings
+|   |-- books/                       #   Book notes
 |-- daily/                           # "Source code" - conversation logs (immutable)
 |-- knowledge/                       # "Executable" - compiled knowledge (LLM-owned)
 |   |-- index.md                     #   Master catalog - THE retrieval mechanism
