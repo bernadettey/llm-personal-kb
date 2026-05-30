@@ -16,7 +16,6 @@ import argparse
 import asyncio
 import sys
 from pathlib import Path
-from datetime import datetime
 
 from config import AGENTS_FILE, RAW_DIR, SOURCES_DIR, KNOWLEDGE_DIR, now_iso
 from utils import (
@@ -25,14 +24,11 @@ from utils import (
     load_state,
     read_wiki_index,
     save_state,
+    slugify,
 )
+from index_builder import rebuild_index
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
-
-
-def slugify(name: str) -> str:
-    """Convert filename to slug."""
-    return name.lower().replace(" ", "-").replace(".md", "").replace(".txt", "")
 
 
 def generate_source_article(raw_file: Path) -> str:
@@ -84,7 +80,7 @@ async def process_raw_file(raw_file: Path, state: dict) -> float:
         query,
     )
 
-    slug = slugify(raw_file.name)
+    slug = slugify(raw_file.stem)
     source_path = SOURCES_DIR / f"{slug}.md"
 
     # Step 1: Generate source article
@@ -122,8 +118,9 @@ File: raw/{raw_file.relative_to(RAW_DIR)}
 3. Extract any entities mentioned - create articles in knowledge/entities/
 4. Identify connections between 2+ concepts - create articles in knowledge/connections/
 5. Update the "Extracted Knowledge" section in {source_path}
-6. Update knowledge/index.md with new entries
-7. Append to knowledge/log.md with what was extracted
+6. Append to knowledge/log.md with what was extracted
+
+Note: Do NOT update knowledge/index.md - it will be rebuilt automatically.
 
 Use the exact formats from AGENTS.md. Include proper YAML frontmatter and wikilinks.
 """
@@ -226,6 +223,10 @@ def main():
         cost = asyncio.run(process_raw_file(raw_file, state))
         total_cost += cost
         print(f"  Done.")
+
+    # Rebuild index after all processing
+    print("\nRebuilding index...")
+    rebuild_index()
 
     articles = list_wiki_articles()
     print(f"\nWiki build complete. Total cost: ${total_cost:.2f}")

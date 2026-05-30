@@ -27,6 +27,7 @@ from utils import (
     read_wiki_index,
     save_state,
 )
+from index_builder import rebuild_index
 
 # ── Paths for the LLM to use ──────────────────────────────────────────
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -119,10 +120,7 @@ Read the daily log above and compile it into wiki articles following the schema 
 7. **Update existing articles** if this log adds new information to concepts/entities/sources already in the wiki
    - Read the existing article, add the new information, add the source to frontmatter
 
-8. **Update knowledge/index.md** - Add new entries to the table
-   - Each entry: `| [[path/slug]] | One-line summary | source-file | {timestamp[:10]} |`
-
-9. **Append to knowledge/log.md** - Add a timestamped entry:
+8. **Append to knowledge/log.md** - Add a timestamped entry:
    ```
    ## [{timestamp}] compile | {log_path.name}
    - Source: daily/{log_path.name}
@@ -139,8 +137,9 @@ Read the daily log above and compile it into wiki articles following the schema 
 - Write source articles to: {KNOWLEDGE_DIR / 'sources'}
 - Write note articles to: {KNOWLEDGE_DIR / 'notes'}
 - Write connection articles to: {CONNECTIONS_DIR}
-- Update index at: {KNOWLEDGE_DIR / 'index.md'}
 - Append log at: {KNOWLEDGE_DIR / 'log.md'}
+
+Note: Do NOT update knowledge/index.md - that will be rebuilt automatically by the script.
 
 ### Quality standards:
 - Every article must have complete YAML frontmatter
@@ -239,6 +238,10 @@ def main():
         cost = asyncio.run(compile_daily_log(log_path, state))
         total_cost += cost
         print(f"  Done.")
+
+    # Rebuild index after all compilations
+    print("\nRebuilding index...")
+    rebuild_index()
 
     articles = list_wiki_articles()
     print(f"\nCompilation complete. Total cost: ${total_cost:.2f}")

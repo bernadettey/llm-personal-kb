@@ -9,10 +9,13 @@ from config import (
     CONCEPTS_DIR,
     CONNECTIONS_DIR,
     DAILY_DIR,
+    ENTITIES_DIR,
     INDEX_FILE,
     KNOWLEDGE_DIR,
     LOG_FILE,
+    NOTES_DIR,
     QA_DIR,
+    SOURCES_DIR,
     STATE_FILE,
 )
 
@@ -23,7 +26,7 @@ def load_state() -> dict:
     """Load persistent state from state.json."""
     if STATE_FILE.exists():
         return json.loads(STATE_FILE.read_text(encoding="utf-8"))
-    return {"ingested": {}, "query_count": 0, "last_lint": None, "total_cost": 0.0}
+    return {"ingested": {}, "raw_ingested": {}, "query_count": 0, "last_lint": None, "total_cost": 0.0}
 
 
 def save_state(state: dict) -> None:
@@ -68,14 +71,17 @@ def read_wiki_index() -> str:
     """Read the knowledge base index file."""
     if INDEX_FILE.exists():
         return INDEX_FILE.read_text(encoding="utf-8")
-    return "# Knowledge Base Index\n\n| Article | Summary | Compiled From | Updated |\n|---------|---------|---------------|---------|"
+    return "# Knowledge Base Index\n\n| Article | Summary | Compiled From | Updated |\n|---------|---------|---------------|---------|"  # noqa: E501
+
+
+WIKI_SUBDIRS = [CONCEPTS_DIR, ENTITIES_DIR, CONNECTIONS_DIR, SOURCES_DIR, NOTES_DIR, QA_DIR]
 
 
 def read_all_wiki_content() -> str:
     """Read index + all wiki articles into a single string for context."""
     parts = [f"## INDEX\n\n{read_wiki_index()}"]
 
-    for subdir in [CONCEPTS_DIR, CONNECTIONS_DIR, QA_DIR]:
+    for subdir in WIKI_SUBDIRS:
         if not subdir.exists():
             continue
         for md_file in sorted(subdir.glob("*.md")):
@@ -89,7 +95,7 @@ def read_all_wiki_content() -> str:
 def list_wiki_articles() -> list[Path]:
     """List all wiki article files."""
     articles = []
-    for subdir in [CONCEPTS_DIR, CONNECTIONS_DIR, QA_DIR]:
+    for subdir in WIKI_SUBDIRS:
         if subdir.exists():
             articles.extend(sorted(subdir.glob("*.md")))
     return articles
